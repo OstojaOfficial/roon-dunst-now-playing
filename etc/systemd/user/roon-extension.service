@@ -1,0 +1,13 @@
+[Unit]
+Description=Roon Extension Script
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /usr/share/waybar/scripts/roon_extension.js
+Restart=on-failure
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/%U
+
+[Install]
+WantedBy=default.target
+
