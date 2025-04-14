@@ -17,15 +17,15 @@ Install dependencies:
 ```bash
 npm install roon-kit
 ```
+on Arch Linux:
+```
+yay -S roon-kit
+```
 
 ### Python (for `get_lyrics.py`)
 - Python 3.x
 - `requests` library
 
-Install Python dependencies:
-```bash
-pip install requests
-```
 
 ## Setup
 
@@ -51,6 +51,22 @@ Make sure Python is in your PATH and executable from the same environment.
 - Displays Now Playing info using the Roon API.
 - Automatically fetches lyrics from Musixmatch.
 - Uses cover art from Roon and external metadata if available.
+
+### Waybar config
+In modules add 
+```
+"custom/roon",
+```
+then add the extension block
+```
+  "custom/roon": {
+    "exec": "cat /tmp/waybar_roon_info.json",
+    "format": "{text}",
+    "tooltip": true,
+    "return-type": "json",
+    "signal": 3
+  },
+```
 
 ## License
 
