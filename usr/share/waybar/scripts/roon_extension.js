@@ -88,8 +88,14 @@ extension.on("subscribe_zones", async (core, response, body) => {
         return;
     }
 
-    for (const zone of [...addedZones, ...changedZones]) {
-        if (zone.state !== 'playing') continue;
+for (const zone of [...addedZones, ...changedZones]) {
+    if (zone.state !== 'playing') {
+        log(` Zona "${zone.display_name}" is not playing (state: ${zone.state}), cleaning Waybar`);
+        fs.writeFileSync('/tmp/waybar_roon_info.json', JSON.stringify({ text: '', tooltip: '' }));
+        exec("pkill -RTMIN+3 waybar");
+        continue;
+    }
+
 
         global.lastZone = zone;
 
