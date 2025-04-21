@@ -10,15 +10,15 @@ global.lastLyrics = 'No lyrics avilale.';
 
 function getLyrics(artist, title, callback) {
     const cmd = `python3 ${lyricsScriptPath} "${artist}" "${title}"`;
-    log(`🎤 Ejecutando: ${cmd}`);
+    log(`Executing: ${cmd}`);
     exec(cmd, (error, stdout, stderr) => {
         if (error) {
             log(` Error in getLyrics: ${stderr}`);
             callback("No lyrics available.");
         } else {
             const lyrics = stdout.trim();
-            log(` Letras avilable (${lyrics.length} chars)`);
-            callback(lyrics || "No lyrics avilable.");
+            log(` Lyrics available (${lyrics.length} chars)`);
+            callback(lyrics || "No lyrics available.");
         }
     });
 }
@@ -26,13 +26,6 @@ function getLyrics(artist, title, callback) {
 function truncateText(str, maxLength = 80) {
     const chars = [...str];
     return chars.length > maxLength ? chars.slice(0, maxLength).join('') + '…' : str;
-}
-
-function log(msg) {
-    const timestamp = new Date().toISOString();
-    const fullMsg = `[${timestamp}] ${msg}`;
-    console.log(fullMsg);
-    fs.appendFileSync('/tmp/roon_debug.log', fullMsg + '\n');
 }
 
 function formatTime(seconds) {
@@ -46,6 +39,22 @@ function progressBar(current, total, length = 20) {
     const percent = current / total;
     const filled = Math.round(percent * length);
     return '▰'.repeat(filled) + '▱'.repeat(length - filled);
+}
+
+function escapeMarkup(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function log(msg) {
+    const timestamp = new Date().toISOString();
+    const fullMsg = `[${timestamp}] ${msg}`;
+    console.log(fullMsg);
+    fs.appendFileSync('/tmp/roon_debug.log', fullMsg + '\n');
 }
 
 const extension = new RoonExtension({
@@ -66,7 +75,7 @@ const extension = new RoonExtension({
 });
 
 extension.on("subscribe_zones", async (core, response, body) => {
-    log(" subscribe_zones event received");
+    log("subscribe_zones event received");
     log(JSON.stringify(body, null, 2));
 
     const changedZones = body.zones_changed ?? [];
@@ -82,7 +91,7 @@ extension.on("subscribe_zones", async (core, response, body) => {
     for (const zone of [...addedZones, ...changedZones]) {
         if (zone.state !== 'playing') continue;
 
-        global.lastZone = zone;  // <- muy importante
+        global.lastZone = zone;
 
         const rawTrack = zone.now_playing?.three_line?.line1 || '';
         const rawArtist = zone.now_playing?.three_line?.line2 || '';
@@ -101,10 +110,6 @@ extension.on("subscribe_zones", async (core, response, body) => {
             ? `${Math.round(sampleRate * bitDepth * channels / 1000)} kbps`
             : '';
 
-        let extraInfo = [];
-        if (bitrate) extraInfo.push(bitrate);
-        if (mediaType) extraInfo.push(mediaType.toUpperCase());
-
         const displayText = truncateText(
             `${rawTrack} - ${rawArtist} • ${album} • ${formatTime(remaining)} restantes`,
             80
@@ -119,8 +124,7 @@ extension.on("subscribe_zones", async (core, response, body) => {
             global.lastLyrics = lyrics || 'No lyrics available.';
 
             const headerLine = `${rawArtist} - ${rawTrack}`;
-            const cachedlyrics = global.lastLyrics || 'No lyrics available.';
-            const tooltip = 
+            const tooltip =
 `${headerLine}
 Álbum: ${album}
 ${year || genre ? `Year: ${year}    Genre: ${genre}` : ''}
@@ -130,12 +134,13 @@ ${bar}
 ${lyrics}`;
 
             const data = {
-                text: displayText,
-                tooltip: tooltip
+                text: escapeMarkup(displayText),
+                tooltip: escapeMarkup(tooltip)
             };
 
+            log("writing waybar_roon_info.json with: " + JSON.stringify(data));
             fs.writeFileSync('/tmp/waybar_roon_info.json', JSON.stringify(data));
-            exec("command -v waybar-msg && waybar-msg -n -m 'custom/roon' || pkill -RTMIN+3 waybar");
+            exec("pkill -RTMIN+3 waybar");
 
             const image_key = zone.now_playing?.image_key;
             if (image_key && pairedCore) {
@@ -145,7 +150,7 @@ ${lyrics}`;
                     fs.writeFileSync(coverPath, imageData.image);
                     exec(`notify-send -i ${coverPath} "Now Playing" "${headerLine}"`);
                 } catch (error) {
-                    console.error("Error obteniendo la carátula:", error);
+                    console.error("Error getting cover:", error);
                     exec(`notify-send "Now Playing" "${headerLine}"`);
                 }
             } else {
@@ -154,7 +159,6 @@ ${lyrics}`;
         });
     }
 
-    // Actualización de tiempo restante en tiempo real
     const seekUpdates = body.zones_seek_changed ?? [];
 
     for (const update of seekUpdates) {
@@ -174,34 +178,36 @@ ${lyrics}`;
             80
         );
 
-        const tooltip = 
-    `${rawArtist} - ${rawTrack}
-    Álbum: ${album}
-    Duration: ${formatTime(position)} / ${formatTime(duration)}
-    ${bar}
+        const tooltip =
+`${rawArtist} - ${rawTrack}
+Álbum: ${album}
+Duration: ${formatTime(position)} / ${formatTime(duration)}
+${bar}
 
-    ${global.lastLyrics}`;
+${global.lastLyrics}`;
 
-        const data = { text: displayText, tooltip };
+        const data = {
+            text: escapeMarkup(displayText),
+            tooltip: escapeMarkup(tooltip)
+        };
 
         if (global.lastSeek !== position) {
             fs.writeFileSync('/tmp/waybar_roon_info.json', JSON.stringify(data));
-            exec("command -v waybar-msg && waybar-msg -n -m 'custom/roon' || pkill -RTMIN+3 waybar");
+            exec("pkill -RTMIN+3 waybar");
             global.lastSeek = position;
         }
     }
-
 });
 
 extension.start_discovery();
 extension.set_status('Waiting for connection to Roon Core ...');
-log("🔍 Buscando Core...");
+log("searching Core...");
 
 (async () => {
     const core = await extension.get_core();
     if (core) {
         pairedCore = core;
-        log(" Paired with Roon Core");
+        log("Paired with Roon Core");
         extension.set_status('Paired with Roon Core');
     } else {
         log(" Not paired with any Core");
