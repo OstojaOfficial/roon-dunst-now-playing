@@ -1,6 +1,6 @@
 # Roon Now Playing Extension
 
-This repository contains a Now Playing extension for [Roon](https://roonlabs.com/) that displays current track metadata, including cover art and lyrics. It integrates with the official [roon-kit](https://github.com/Stevenic/roon-kit) API and uses a Python script to fetch lyrics from the Musixmatch API.
+This repository contains a Now Playing extension for [Roon](https://roonlabs.com/) that displays current track metadata, including cover art and lyrics. It integrates with the official [roon-kit](https://github.com/Stevenic/roon-kit) API and uses a Python script to fetch lyrics from the Musixmatch API
 
 ## Contents
 
