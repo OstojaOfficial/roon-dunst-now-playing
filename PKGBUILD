@@ -12,7 +12,7 @@ source=("git+$url.git")
 md5sums=('SKIP')
 
 package() {
-  cd "$srcdir"
+  cd "$srcdir/roon-dunst-now-playing"
   mkdir -p ${pkgdir}/opt/${pkgname}
   install -Dm644 "roon-dunst-now-playing.js" "$pkgdir/opt/$pkgname/roon-dunst-now-playing.js"
   install -Dm644 "roon-dunst-now-playing.service" "$pkgdir/usr/lib/systemd/user/roon-dunst-now-playing.service"
