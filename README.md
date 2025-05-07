@@ -4,11 +4,11 @@ This is a modified fork of teraflops's [Roon Now Playing](https://gitlab.com/ter
 
 ## Contents
 
-- `roon_extension.js`: Main Roon extension that listens to playback events and displays Now Playing information.
+- `roon-dunst-now-playing.js`: Main Roon extension that listens to playback events and displays Now Playing information.
 
 ## Requirements
 
-### Node.js (for `roon_extension.js`)
+### Node.js (for `roon-dunst-now-playing.js`)
 - [roon-kit](https://github.com/Stevenic/roon-kit)
 - Node.js 18+
 
@@ -24,7 +24,7 @@ yay -S roon-kit
 ### Run the extension
 Start the Roon extension using Node.js:
 ```bash
-node roon_extension.js
+node roon-dunst-now-playing.js
 ```
 
 ## License
