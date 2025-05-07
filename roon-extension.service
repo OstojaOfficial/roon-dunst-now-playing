@@ -1,10 +1,10 @@
 [Unit]
-Description=Roon Extension Script
+Description=Roon Extension Dunst Now Playing
 After=network.target
 
 [Service]
 Environment=NODE_PATH=/usr/lib/node_modules
-ExecStart=/usr/bin/node /usr/share/waybar/scripts/roon_extension.js
+ExecStart=/usr/bin/node /opt/roon-dunst-now-playing/roon_extension.js
 Restart=on-failure
 Environment=DISPLAY=:0
 Environment=XDG_RUNTIME_DIR=/run/user/%U
