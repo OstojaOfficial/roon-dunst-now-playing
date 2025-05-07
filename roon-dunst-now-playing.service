@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Environment=NODE_PATH=/usr/lib/node_modules
-ExecStart=/usr/bin/node /opt/roon-dunst-now-playing/roon_extension.js
+ExecStart=/usr/bin/node /opt/roon-dunst-now-playing/roon-dunst-now-playing.js
 Restart=on-failure
 Environment=DISPLAY=:0
 Environment=XDG_RUNTIME_DIR=/run/user/%U

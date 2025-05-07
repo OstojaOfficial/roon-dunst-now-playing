@@ -9,13 +9,12 @@ license=('MIT')
 depends=('nodejs' 'roon-kit')
 makedepends=('git')
 source=("git+$url.git")
-md5sums=('SKIP' 'SKIP')
-install=${pkgname}.install
+md5sums=('SKIP')
 
 package() {
   cd "$srcdir"
-  mkdir -p ${pkgdir}/opt/${$pkgname}
-  install -Dm644 "roon_extension.js" "$pkgdir/opt/$pkgname/roon_extension.js"
-  install -Dm644 "roon-extension.service" "$pkgdir/etc/systemd/user/roon-extension.service"
+  mkdir -p ${pkgdir}/opt/${pkgname}
+  install -Dm644 "roon-dunst-now-playing.js" "$pkgdir/opt/$pkgname/roon-dunst-now-playing.js"
+  install -Dm644 "roon-dunst-now-playing.service" "$pkgdir/usr/lib/systemd/user/roon-dunst-now-playing.service"
   install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
