@@ -88,15 +88,17 @@ extension.on("subscribe_zones", async (core, response, body) => {
         return;
     }
 
-for (const zone of [...addedZones, ...changedZones]) {
-    if (zone.state !== 'playing') {
-        log(` Zona "${zone.display_name}" is not playing (state: ${zone.state}), cleaning Waybar`);
-        fs.writeFileSync('/tmp/waybar_roon_info.json', JSON.stringify({ text: '', tooltip: '' }));
-        exec("pkill -RTMIN+3 waybar");
-        continue;
-    }
+    let anyPlaying = false;
 
+    for (const zone of [...addedZones, ...changedZones]) {
+        if (zone.state !== 'playing') {
+            log(` Zona "${zone.display_name}" is not playing (state: ${zone.state}), cleaning Waybar`);
+            fs.writeFileSync('/tmp/waybar_roon_info.json', JSON.stringify({ text: '', tooltip: '' }));
+            exec("pkill -RTMIN+3 waybar");
+            continue;
+        }
 
+        anyPlaying = true;
         global.lastZone = zone;
 
         const rawTrack = zone.now_playing?.three_line?.line1 || '';
@@ -163,6 +165,13 @@ ${lyrics}`;
                 exec(`notify-send "Now Playing" "${headerLine}"`);
             }
         });
+    }
+
+    // Nueva lógica: limpiar si no hay ninguna zona reproduciendo
+    if (!anyPlaying) {
+        log(" Ninguna zona está reproduciendo. Limpiando Waybar.");
+        fs.writeFileSync('/tmp/waybar_roon_info.json', JSON.stringify({ text: '', tooltip: '' }));
+        exec("pkill -RTMIN+3 waybar");
     }
 
     const seekUpdates = body.zones_seek_changed ?? [];
